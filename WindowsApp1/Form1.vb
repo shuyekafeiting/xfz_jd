@@ -23,7 +23,7 @@ Public Class Form1
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
 
 
-        '读取配置文件
+        '读取配置文件,gittest110
         FileOpen(3, "./conf/url.conf", OpenMode.Input)
         Me.empData = LineInput(3)
         FileClose(3)

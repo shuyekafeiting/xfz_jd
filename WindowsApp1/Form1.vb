@@ -10,8 +10,11 @@ Public Class Form1
     '配置array
     Dim ar As Array
     Private page = 0 '页码
-    Private time = Format(Now, "yyyyMMdd")
-     Private ifpei = 0
+    Private time = Format(Now, "yyyyMMddHH")
+    Public pageIndex = 0 '起始页
+    Private ifStart = 0 '是否正在运行
+    Private ifStop = 0 '是否手动停止
+    Private ifpei = 0
     Private Sub Label1_Click(sender As Object, e As EventArgs) Handles Label1.Click
 
     End Sub
@@ -21,7 +24,8 @@ Public Class Form1
     End Sub
 
     Private Sub Form1_Load(sender As Object, e As EventArgs) Handles MyBase.Load
-
+        DateTimePicker1.CustomFormat = "yyyy年MM月dd日HH时"
+        DateTimePicker2.CustomFormat = "yyyy年MM月dd日HH时"
 
         '读取配置文件,gittest110
         FileOpen(3, "./conf/url.conf", OpenMode.Input)
@@ -131,9 +135,18 @@ Public Class Form1
     End Sub
 
     Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
-        time = Format(DateTimePicker1.Value, "yyyyMMdd")
-        If Timer1.Enabled = False Then
-            If time > Format(DateTimePicker2.Value, "yyyyMMdd") Then
+        pageIndex = TextBox2.Text() - 1
+
+        'Dim Webcode, Url, PostDate, text
+        'Url = "http://localhost/post/testexe.php"
+        'PostDate = "tpl_ok=&next_target=&tpl=mn&skip_ok=&aid=&need_pay=&need_coin=&pay_method=&u=http://www.baidu.com/&return_method=get&more_param=&return_type=&psp_tt=0&password=31002865&safeflg=0&isphone=tpl&username=����Ƭ�泬&verifycode=&mem_pass=on"
+        'Text = XMLHttpRequest("POST", Url, PostDate)
+        'MessageBox.Show(text)
+
+
+        time = Format(DateTimePicker1.Value, "yyyyMMddHH")
+        If ifStart = 0 Then
+            If time > Format(DateTimePicker2.Value, "yyyyMMddHH") Then
                 MsgBox("时间参数有误", vbCritical, "参数有误")
                 Return
             End If
@@ -157,9 +170,11 @@ Public Class Form1
                 TextBox3.Visible = True
                 TextBox3.Text = "开始执行..."
                 GroupBox1.Visible = False
-                Timer1.Enabled = True
-                Timer1.Interval = TextBox2.Text * 1000
-                Button2.Text = "停止执行"
+
+                ' Timer1.Enabled = True
+                'Timer1.Interval = TextBox2.Text * 1000
+                ifStop = 0
+                ImportTrade()
 
                 '写入配置
                 '取出对象
@@ -174,45 +189,75 @@ Public Class Form1
                 FileClose(2)
             End If
         Else
-            Timer1.Enabled = False
-            Button2.Text = "重新开始"
+            ifStop = 1
             Button2.Enabled = True
+            Button2.Text = "重新执行"
         End If
 
 
     End Sub
 
-    Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
+
+    Function ImportTrade()
+        '判断是否是手动停止状态如果是则停止
+        If ifStop = 1 Then
+            ifStart = 0
+            Return 0
+        End If
+        '变更为正在执行的状态
+        ifStart = 1
+        If ifStart = 1 Then
+            Button2.Text = "停止执行"
+        Else
+            Button2.Text = "重新执行"
+        End If
+
         '是否加换行
-        Dim str As String = TextBox1.Text & time & "&pageIndex=" & page + 1 'url赋值
-        page = page + 1
-        Dim responseStr As String = PostRequest("xml内容", str)
+        Dim str As String = TextBox1.Text & "&time=" & time & "&pageIndex=" & pageIndex + 1 'url赋值
+        Dim responseStr As String = XMLHttpRequest("POST", str, "")
 
         '解析json数据
-
-
-
         Try
             Dim p As Linq.JObject = CType(JsonConvert.DeserializeObject(responseStr), Linq.JObject)    '用Newtonsoft.Json反序列json字符串
-            If p("end").ToString() = 1 Then
+            '优先查看服务返回了code=-1
+            Try
+                If p("code").ToString() = "-1" Then
+                    Timer1.Enabled = False
+                    TextBox3.Text = p("data").ToString() & vbCrLf & TextBox3.Text
+                    'page = 0
+                    'ifStart = 0
+                    'Button2.Text = "重新开始"
+                    'Return 0
+                End If
+            Catch ex As Exception
+                MessageBox.Show(ex.Message)
+            End Try
+
+            Dim result As String = p("data").ToString()   '提取Json字符串中的“data”值
+            TextBox3.Text = result & vbCrLf & TextBox3.Text
+            If p("ifend").ToString() = 1 Then
+
                 '最后一页
-                If time < Format(DateTimePicker2.Value, "yyyyMMdd") Then
+                If time < Format(DateTimePicker2.Value, "yyyyMMddHH") Then
                     time = time + 1
-                    page = 0
+                    pageIndex = 0
                 Else
                     Timer1.Enabled = False
                     TextBox3.Text = "执行完成" & vbCrLf & TextBox3.Text
                     Button2.Text = "重新执行"
-                    Return
+                    ifStart = 0
+                    Return 0
                 End If
-
+            Else
+                pageIndex = pageIndex + 1
             End If
-            Dim result As String = p("data").ToString()   '提取Json字符串中的“data”值
 
-            TextBox3.Text = result & vbCrLf & TextBox3.Text
+
+
             FileOpen(1, "log.txt", OpenMode.Append)
             PrintLine(1, result)
             FileClose(1)
+            ImportTrade()
         Catch ex As Exception
             'json解析异常的处理
             '记录错误日志
@@ -222,17 +267,96 @@ Public Class Form1
             content = responseStr '验证码
             level = "1" '验证码
             auth_code = "xfz178com" '验证码
-            MessageBox.Show(responseStr)
             Dim postData As String = "data_id=" & data_id & "&type=" & type & "&content=" & content & "&level=" & level & "&auth_code=" & auth_code
             Dim url As String = "http://120.79.133.35/mgdb/post_receive.php"
-            Selfpost(url, postData, Me, Timer1)
+            Selfpost(url, postData, Me)
         End Try
+    End Function
+    Public Function Selfpost(url As String, postdata As String, Ob As Object) As Boolean
+        ' Create a request using a URL that can receive a post. 
+        Dim request As WebRequest = WebRequest.Create(url)
+        ' Set the Method property of the request to POST.
+        request.Method = "POST"
+        ' Create POST data and convert it to a byte array.
+
+
+        Dim byteArray As Byte() = Encoding.UTF8.GetBytes(postdata)
+        ' Set the ContentType property of the WebRequest.
+        request.ContentType = "application/x-www-form-urlencoded"
+        ' Set the ContentLength property of the WebRequest.
+        request.ContentLength = byteArray.Length
+        ' Get the request stream.
+        Dim dataStream As Stream = request.GetRequestStream()
+        ' Write the data to the request stream.
+        dataStream.Write(byteArray, 0, byteArray.Length)
+        ' Close the Stream object.
+        dataStream.Close()
+        ' Get the response.
+        Dim response As WebResponse = request.GetResponse()
+        ' Display the status.
+        Console.WriteLine(CType(response, HttpWebResponse).StatusDescription)
+        ' Get the stream containing content returned by the server.
+        dataStream = response.GetResponseStream()
+        ' Open the stream using a StreamReader for easy access.
+        Dim reader As New StreamReader(dataStream)
+        ' Read the content.
+        Dim responseFromServer As String = reader.ReadToEnd()
+        ' Display the content.
+        Console.WriteLine(responseFromServer)
+        Console.Read()
+        ' Clean up the streams.
+
+        '确认是否关闭程序
+
+        'Dim result As DialogResult = MessageBox.Show("程序运行过程出了一点小问题,已经提交到技术部,是否继续运行？", "异常", MessageBoxButtons.OKCancel, MessageBoxIcon.Question)
+        'If result = DialogResult.OK Then
+        Ob.pageIndex = Ob.pageIndex + 1
+        Ob.ImportTrade()
+
+        Return True
+        ' Else
+        'Ob.Close()
+        'End If
 
 
 
+        reader.Close()
+        dataStream.Close()
+        response.Close()
+    End Function
+    '异步请求防止程序卡死的函数
+    Function XMLHttpRequest(ByVal XmlHttpMode, ByVal XmlHttpURL, ByVal XmlHttpData)
+        Dim MyXmlhttp
+        On Error GoTo wrong
+        MyXmlhttp = CreateObject("WinHttp.WinHttpRequest.5.1")                  '创建WinHttpRequest对象
+        With MyXmlhttp
+            .setTimeouts(50000, 50000, 50000, 50000)                               '设置超时时间
+            If XmlHttpMode = "GET" Then                                             '异步GET请求
+                .Open("GET", XmlHttpURL, True)
+            Else
+                .Open("POST", XmlHttpURL, True)                                     '异步POST请求
+                .setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
+            End If
+            .setRequestHeader("Accept", "image/gif,image/x-xbitmap,image/jpeg,image/pjpeg,application/x-shockwave-flash,*/*")
+            '.setRequestHeader("Referer", "https://passport.baidu.com/?login&tpl=mn")
+            .setRequestHeader("Accept-Language", "zh-cn")
+            .setRequestHeader("Accept-Encoding", "deflate")
+            .setRequestHeader("User-Agent", "Mozilla/4.0(compatible;MSIE6.0;WindowsNT5.1;SV1;.NETCLR2.0.50727)")
+            .send(XmlHttpData)
+            .waitForResponse                                                        '异步等待
 
-    End Sub
-
+            If MyXmlhttp.Status = 200 Then                                          '成功获取页面
+                XMLHttpRequest = .ResponseText
+            Else
+                MsgBox("Http错误代码:" & .Status, vbInformation, "提示")
+            End If
+        End With
+        MyXmlhttp = Nothing
+        Exit Function
+wrong:
+        MsgBox("错误原因:" & Err.Description & "", vbInformation, "提示")
+        MyXmlhttp = Nothing
+    End Function
     Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click
         If Timer1.Enabled = True Then
             MsgBox("请先停止执行", vbCritical, "操作错误")
@@ -272,103 +396,16 @@ Public Class Form1
     Private Sub Button1_Click_1(sender As Object, e As EventArgs) 
 
     End Sub
+
+    Private Sub Label3_Click(sender As Object, e As EventArgs) Handles Label3.Click
+
+    End Sub
+
+    Private Sub DateTimePicker1_ValueChanged(sender As Object, e As EventArgs) Handles DateTimePicker1.ValueChanged
+
+    End Sub
 End Class
 
 
-Module Module1
-
-    Public Function PostRequest(ByVal xmlRequest As String, ByVal postUrl As String) As String
-        Dim xml As String = xmlRequest
-        '实例化一个字符转码对象'  
-        Dim encoding As System.Text.Encoding = System.Text.Encoding.GetEncoding("utf-8")
-        '创建一个web请求对象'  
-        Dim request As System.Net.WebRequest = System.Net.WebRequest.Create(postUrl)
-        '设置请求方式为post'  
-        request.Method = "POST"
-        '定义字节数组'  
-        Dim postdata() As System.Byte = encoding.GetBytes(xmlRequest)
-        '设置request对象的请求字节的长度'  
-        request.ContentLength = postdata.Length
-        '获取request对象的数据流'  
-        Try
-            Dim requesstream As System.IO.Stream = request.GetRequestStream()
-            '将数据内容填充到流中'  
-            requesstream.Write(postdata, 0, postdata.Length)
-            '关闭流'  
-            requesstream.Close()
-            '根据请求的request对象获取响应的response对象'  
-            Try
-                Dim response As System.Net.WebResponse = request.GetResponse()
-                '获取response数据流对象'  
-                Dim responsestream As IO.StreamReader = New IO.StreamReader(response.GetResponseStream())
-                '将response流中的数据读取'  
-                Dim html As String = responsestream.ReadToEnd()
-
-                requesstream.Close()
-                response.Close()
-                '返回本次请求的响应数据'  
-                Return html
-            Catch ex As Exception
-                Return ex.Message
-            End Try
-        Catch ex As Exception
-            Return ex.Message
-
-        End Try
-    End Function
-
-    Public Function Selfpost(url As String, postdata As String, Ob As Object, timer As Object) As Boolean
-        timer.Enabled = False
-        ' Create a request using a URL that can receive a post. 
-        Dim request As WebRequest = WebRequest.Create(url)
-        ' Set the Method property of the request to POST.
-        request.Method = "POST"
-        ' Create POST data and convert it to a byte array.
-
-
-        Dim byteArray As Byte() = Encoding.UTF8.GetBytes(postdata)
-        ' Set the ContentType property of the WebRequest.
-        request.ContentType = "application/x-www-form-urlencoded"
-        ' Set the ContentLength property of the WebRequest.
-        request.ContentLength = byteArray.Length
-        ' Get the request stream.
-        Dim dataStream As Stream = request.GetRequestStream()
-        ' Write the data to the request stream.
-        dataStream.Write(byteArray, 0, byteArray.Length)
-        ' Close the Stream object.
-        dataStream.Close()
-        ' Get the response.
-        Dim response As WebResponse = request.GetResponse()
-        ' Display the status.
-        Console.WriteLine(CType(response, HttpWebResponse).StatusDescription)
-        ' Get the stream containing content returned by the server.
-        dataStream = response.GetResponseStream()
-        ' Open the stream using a StreamReader for easy access.
-        Dim reader As New StreamReader(dataStream)
-        ' Read the content.
-        Dim responseFromServer As String = reader.ReadToEnd()
-        ' Display the content.
-        Console.WriteLine(responseFromServer)
-        Console.Read()
-        ' Clean up the streams.
-
-        '确认是否关闭程序
-
-        Dim result As DialogResult = MessageBox.Show("程序运行过程出了一点小问题,已经提交到技术部,是否继续运行？", "异常", MessageBoxButtons.OKCancel, MessageBoxIcon.Question)
-        If result = DialogResult.OK Then
-            timer.Enabled = False
-            Return True
-        Else
-            Ob.Close()
-        End If
-
-
-
-        reader.Close()
-        dataStream.Close()
-        response.Close()
-    End Function
-
-End Module
 
 

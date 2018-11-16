@@ -72,7 +72,7 @@ Partial Class Form1
         Me.Label6.Name = "Label6"
         Me.Label6.Size = New System.Drawing.Size(17, 12)
         Me.Label6.TabIndex = 11
-        Me.Label6.Text = "秒"
+        Me.Label6.Text = "页"
         '
         'ComboBox1
         '
@@ -84,6 +84,7 @@ Partial Class Form1
         '
         'DateTimePicker2
         '
+        Me.DateTimePicker2.Format = System.Windows.Forms.DateTimePickerFormat.Custom
         Me.DateTimePicker2.Location = New System.Drawing.Point(88, 191)
         Me.DateTimePicker2.Name = "DateTimePicker2"
         Me.DateTimePicker2.Size = New System.Drawing.Size(167, 21)
@@ -91,10 +92,12 @@ Partial Class Form1
         '
         'DateTimePicker1
         '
+        Me.DateTimePicker1.Format = System.Windows.Forms.DateTimePickerFormat.Custom
         Me.DateTimePicker1.Location = New System.Drawing.Point(88, 152)
         Me.DateTimePicker1.Name = "DateTimePicker1"
         Me.DateTimePicker1.Size = New System.Drawing.Size(167, 21)
         Me.DateTimePicker1.TabIndex = 8
+        Me.DateTimePicker1.Value = New Date(2018, 11, 16, 16, 2, 12, 0)
         '
         'TextBox2
         '
@@ -135,7 +138,7 @@ Partial Class Form1
         Me.Label3.Name = "Label3"
         Me.Label3.Size = New System.Drawing.Size(59, 12)
         Me.Label3.TabIndex = 2
-        Me.Label3.Text = "循环时间:"
+        Me.Label3.Text = "起始页码:"
         '
         'Label2
         '
@@ -191,9 +194,6 @@ Partial Class Form1
         Me.TextBox3.Size = New System.Drawing.Size(310, 241)
         Me.TextBox3.TabIndex = 5
         '
-        'Timer1
-        '
-        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
@@ -204,8 +204,8 @@ Partial Class Form1
         Me.Controls.Add(Me.Button4)
         Me.Controls.Add(Me.Button3)
         Me.Controls.Add(Me.Button2)
-        Me.Controls.Add(Me.TextBox3)
         Me.Controls.Add(Me.GroupBox1)
+        Me.Controls.Add(Me.TextBox3)
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MaximizeBox = False
         Me.Name = "Form1"

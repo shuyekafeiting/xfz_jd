@@ -33,7 +33,7 @@ Public Class Form1
 
         '解析json
         Dim p As JObject = CType(JsonConvert.DeserializeObject(Me.empData), JObject)
-        '检测exe版本
+        '检测exe版本 1111
         Dim exeVesionStr As String = p("exe_vesion")
 
         '本地acc版本

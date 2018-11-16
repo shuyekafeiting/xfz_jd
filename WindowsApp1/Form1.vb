@@ -31,7 +31,7 @@ Public Class Form1
         'Dim empData As String = "{'employees': [" & " { 'firstName':'Bill' , 'lastName':'Gates' }," & " { 'firstName':'George' , 'lastName':'Bush' }," & " { 'firstName':'Thomas' , 'lastName':'Carter' }" & "]}"
 
 
-        '解析json testgit1111222
+        '解析json testgit1111222333
         Dim p As JObject = CType(JsonConvert.DeserializeObject(Me.empData), JObject)
         '检测exe版本
         Dim exeVesionStr As String = p("exe_vesion")

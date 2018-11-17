@@ -41,6 +41,7 @@ Partial Class Form1
         Me.Button4 = New System.Windows.Forms.Button()
         Me.TextBox3 = New System.Windows.Forms.TextBox()
         Me.Timer1 = New System.Windows.Forms.Timer(Me.components)
+        Me.Button1 = New System.Windows.Forms.Button()
         Me.GroupBox1.SuspendLayout()
         Me.SuspendLayout()
         '
@@ -169,7 +170,7 @@ Partial Class Form1
         '
         'Button3
         '
-        Me.Button3.Location = New System.Drawing.Point(345, 124)
+        Me.Button3.Location = New System.Drawing.Point(349, 87)
         Me.Button3.Name = "Button3"
         Me.Button3.Size = New System.Drawing.Size(75, 23)
         Me.Button3.TabIndex = 3
@@ -178,7 +179,7 @@ Partial Class Form1
         '
         'Button4
         '
-        Me.Button4.Location = New System.Drawing.Point(345, 227)
+        Me.Button4.Location = New System.Drawing.Point(349, 153)
         Me.Button4.Name = "Button4"
         Me.Button4.Size = New System.Drawing.Size(75, 23)
         Me.Button4.TabIndex = 4
@@ -194,6 +195,16 @@ Partial Class Form1
         Me.TextBox3.Size = New System.Drawing.Size(310, 241)
         Me.TextBox3.TabIndex = 5
         '
+        'Button1
+        '
+        Me.Button1.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(224, Byte), Integer), CType(CType(192, Byte), Integer))
+        Me.Button1.Location = New System.Drawing.Point(349, 219)
+        Me.Button1.Name = "Button1"
+        Me.Button1.Size = New System.Drawing.Size(75, 23)
+        Me.Button1.TabIndex = 6
+        Me.Button1.Text = "订单检测"
+        Me.Button1.UseVisualStyleBackColor = False
+        '
         'Form1
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 12.0!)
@@ -201,6 +212,7 @@ Partial Class Form1
         Me.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink
         Me.BackgroundImage = Global.WindowsApp1.My.Resources.Resources.timg
         Me.ClientSize = New System.Drawing.Size(436, 265)
+        Me.Controls.Add(Me.Button1)
         Me.Controls.Add(Me.Button4)
         Me.Controls.Add(Me.Button3)
         Me.Controls.Add(Me.Button2)
@@ -234,4 +246,5 @@ Partial Class Form1
     Friend WithEvents Button4 As Button
     Friend WithEvents TextBox3 As TextBox
     Friend WithEvents Timer1 As Timer
+    Friend WithEvents Button1 As Button
 End Class

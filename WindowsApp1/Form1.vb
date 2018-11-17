@@ -46,9 +46,9 @@ Public Class Form1
         '线上版本
         Dim vesionTable As DataTable
         vesionTable = Me.Mysqlclient.ExecSelectNo("SELECT * FROM `jd_vesion` ")
-        Try
-            '判断exe版本
-            Dim exeVesionTable As DataTable
+        'Try
+        '判断exe版本
+        Dim exeVesionTable As DataTable
             exeVesionTable = Me.Mysqlclient.ExecSelectNo("SELECT * FROM `jd_vesion` ")
             If exeVesionStr <> exeVesionTable.Rows(0)("exe_vesion").ToString Then
                 InputBox("该程序的最新版本已经发布,手动复制并打开浏览器进行下载?", "下载最新版", exeVesionTable.Rows(0)("exe_url").ToString)
@@ -96,9 +96,9 @@ Public Class Form1
                     pp("acc")(j)("url") = accTable.Rows(j)("url").ToString
                     j = j + 1
                 Loop
-                pp("vesion") = vesionTable.Rows(0)("vesion").ToString
-                '转换string后去掉换行
-                Dim jsonStr As String = Replace(Replace(pp.ToString(), vbCr, ""), vbLf, "")
+            pp("acc_vesion") = vesionTable.Rows(0)("acc_vesion").ToString
+            '转换string后去掉换行
+            Dim jsonStr As String = Replace(Replace(pp.ToString(), vbCr, ""), vbLf, "")
 
                 '保存配置
                 FileOpen(2, "./conf/url.conf", OpenMode.Output)
@@ -111,10 +111,10 @@ Public Class Form1
 
 
             End If
-        Catch ex As Exception
-            MessageBox.Show("配置服务器链接失败,请联系技术部处理")
-            Me.Close()
-        End Try
+            'Catch ex As Exception
+        'MessageBox.Show("配置服务器链接失败,请联系技术部处理")
+        'Me.Close()
+        'End Try
 
 
 
@@ -403,6 +403,10 @@ wrong:
 
     Private Sub DateTimePicker1_ValueChanged(sender As Object, e As EventArgs) Handles DateTimePicker1.ValueChanged
 
+    End Sub
+
+    Private Sub Button1_Click_2(sender As Object, e As EventArgs) Handles Button1.Click
+        订单检测.Show()
     End Sub
 End Class
 

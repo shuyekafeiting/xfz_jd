@@ -97,7 +97,8 @@
     <Import Include="System.Threading.Tasks" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.vb" />
+    <Compile Include="Postclas.vb" />
+    <Compile Include="Class2.vb" />
     <Compile Include="Form1.vb">
       <SubType>Form</SubType>
     </Compile>

@@ -88,14 +88,14 @@ Public Class Form1
                 '写进配置文件
 
                 Dim pp As JObject = CType(JsonConvert.DeserializeObject(Me.empData), JObject)
-                '赋值
+            '赋值
 
 
-                Do While j < accTable.Rows.Count
-                    pp("acc")(j)("name") = accTable.Rows(j)("name").ToString
-                    pp("acc")(j)("url") = accTable.Rows(j)("url").ToString
-                    j = j + 1
-                Loop
+            Do While j < accTable.Rows.Count
+                pp("acc")(j)("name") = accTable.Rows(j)("name").ToString
+                pp("acc")(j)("url") = accTable.Rows(j)("url").ToString
+                j = j + 1
+            Loop
             pp("acc_vesion") = vesionTable.Rows(0)("acc_vesion").ToString
             '转换string后去掉换行
             Dim jsonStr As String = Replace(Replace(pp.ToString(), vbCr, ""), vbLf, "")
@@ -215,6 +215,7 @@ Public Class Form1
         '是否加换行
         Dim str As String = TextBox1.Text & "&time=" & time & "&pageIndex=" & pageIndex + 1 'url赋值
         Dim responseStr As String = XMLHttpRequest("POST", str, "")
+        Console.WriteLine(str)
 
         '解析json数据
         Try
@@ -239,7 +240,34 @@ Public Class Form1
 
                 '最后一页
                 If time < Format(DateTimePicker2.Value, "yyyyMMddHH") Then
-                    time = time + 1
+
+                    Dim year = Mid(time, 1, 4)
+                    Dim mouth = Mid(time, 5, 2)
+                    Dim day = Mid(time, 7, 2)
+                    Dim hour = Mid(time, 9, 2)
+
+                    If hour <> 23 Then
+                        time = time + 1
+                    Else
+                        hour = "00"
+                        If day < 9 Then
+                            day = day + 1
+                            day = "0" & day
+                        Else
+                            day = day + 1
+                        End If
+                        time = year & mouth & day & hour
+                    End If
+                    'time1 = "20181118"
+                    'MsgBox(a.Year)
+                    'Dim strSj As String
+                    'strSj = "20100810181015"
+                    'time1 = Mid(time, 1, 4) & "-" & Mid(time, 5, 2) & "-" & Mid(time, 7, 2) & " " & Mid(time, 9, 2)
+
+                    'a = CDate(Format(CInt(time1), "yyyymmddhh"))
+                    't = Format("20100810181015", "0000-00-00 00:00:00")
+                    'MsgBox(a)
+
                     pageIndex = 0
                 Else
                     Timer1.Enabled = False
@@ -255,21 +283,13 @@ Public Class Form1
 
 
             FileOpen(1, "log.txt", OpenMode.Append)
-            PrintLine(1, result)
+            PrintLine(1, ComboBox1.Text + result)
             FileClose(1)
             ImportTrade()
         Catch ex As Exception
             'json解析异常的处理
             '记录错误日志
-            Dim data_id, type, content, level, auth_code As String
-            data_id = "jdimport_exe" 'QQ号码
-            type = "京东导单程序异常" '加密后的QQ密码
-            content = responseStr '验证码
-            level = "1" '验证码
-            auth_code = "xfz178com" '验证码
-            Dim postData As String = "data_id=" & data_id & "&type=" & type & "&content=" & content & "&level=" & level & "&auth_code=" & auth_code
-            Dim url As String = "http://120.79.133.35/mgdb/post_receive.php"
-            Selfpost(url, postData, Me)
+
         End Try
     End Function
     Public Function Selfpost(url As String, postdata As String, Ob As Object) As Boolean
@@ -291,6 +311,7 @@ Public Class Form1
         dataStream.Write(byteArray, 0, byteArray.Length)
         ' Close the Stream object.
         dataStream.Close()
+        MessageBox.Show(request.ToString())
         ' Get the response.
         Dim response As WebResponse = request.GetResponse()
         ' Display the status.

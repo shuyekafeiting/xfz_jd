@@ -98,7 +98,7 @@ Partial Class Form1
         Me.DateTimePicker1.Name = "DateTimePicker1"
         Me.DateTimePicker1.Size = New System.Drawing.Size(167, 21)
         Me.DateTimePicker1.TabIndex = 8
-        Me.DateTimePicker1.Value = New Date(2018, 11, 16, 16, 2, 12, 0)
+        Me.DateTimePicker1.Value = New Date(2018, 11, 19, 0, 0, 0, 0)
         '
         'TextBox2
         '
